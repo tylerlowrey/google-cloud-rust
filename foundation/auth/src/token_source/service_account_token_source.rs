@@ -8,6 +8,7 @@ use async_trait::async_trait;
 use hyper::client::HttpConnector;
 use hyper::http::{Method, Request};
 use serde::{Deserialize, Serialize};
+use crate::credentials::CredentialsFile;
 
 #[derive(Clone, Serialize)]
 struct Claims<'a> {
@@ -87,6 +88,7 @@ struct OAuth2Token {
 //jwt implements the OAuth 2.0 JSON Web Token flow
 pub struct OAuth2ServiceAccountTokenSource {
     pub email: String,
+    pub delegation_email: Option<String>,
     pub pk: jwt::EncodingKey,
     pub pk_id: String,
     pub scopes: String,
@@ -99,9 +101,14 @@ impl OAuth2ServiceAccountTokenSource {
     pub(crate) fn new(
         cred: &credentials::CredentialsFile,
         scopes: &str,
+        delegation_email: Option<&str>
     ) -> Result<OAuth2ServiceAccountTokenSource, Error> {
         Ok(OAuth2ServiceAccountTokenSource {
             email: cred.client_email.unwrap_or_empty(),
+            delegation_email: match delegation_email {
+                Some(email) => Some(email.to_string()),
+                None => None
+            },
             pk: cred.try_to_private_key()?,
             pk_id: cred.private_key_id.unwrap_or_empty(),
             scopes: scopes.to_string(),
@@ -122,7 +129,7 @@ impl TokenSource for OAuth2ServiceAccountTokenSource {
 
         let request_token = Claims {
             iss: self.email.as_ref(),
-            sub: None, // TODO support impersonate credentials
+            sub: self.delegation_email.as_deref(),
             scope: Some(self.scopes.as_ref()),
             aud: self.token_url.as_ref(),
             exp: exp.timestamp(),

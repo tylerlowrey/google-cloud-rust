@@ -98,6 +98,7 @@ impl ConnectionManager {
         let ts = create_token_source(Config {
             audience: Some(audience),
             scopes,
+            delegation_email: None
         })
         .await
         .map(|e| Arc::from(e))?;

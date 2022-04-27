@@ -20,6 +20,7 @@ const USER_CREDENTIALS_KEY: &str = "authorized_user";
 pub struct Config<'a> {
     pub audience: Option<&'a str>,
     pub scopes: Option<&'a [&'a str]>,
+    pub delegation_email: Option<&'a str>
 }
 
 impl Config<'_> {
@@ -67,7 +68,11 @@ fn credentials_from_json_with_params(
 
                     // use Standard OAuth 2.0 Flow
                     let source =
-                        OAuth2ServiceAccountTokenSource::new(&credentials, config.scopes_to_string(" ").as_str())?;
+                        OAuth2ServiceAccountTokenSource::new(
+                            &credentials,
+                            config.scopes_to_string(" ").as_str(),
+                            config.delegation_email
+                        )?;
                     Ok(Box::new(source))
                 }
                 Some(audience) => {
