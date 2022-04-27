@@ -14,5 +14,5 @@ Cargo.lock
 
 /target
 
-# IntelliJ Suite (CLion, IntelliJ, etc.) files
+# IntelliJ Suite (CLion, IntelliJ, etc.) project files
 .idea
